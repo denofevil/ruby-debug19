@@ -382,8 +382,6 @@ FUNC_FASTCALL(do_jump)(rb_thread_t *th, rb_control_frame_t *cfp)
     debug_context->jump_cfp = NULL;
     if (!CTX_FL_TEST(debug_context, CTX_FL_EXCEPTION_TEST))
     {
-        debug_context->last_line = 0;
-        debug_context->last_file = NULL;
         debug_context->stop_next = 1;
     }
 
@@ -579,8 +577,6 @@ debug_context_create(VALUE thread)
     debug_context = ALLOC(debug_context_t);
     debug_context-> thnum = ++thnum_max;
 
-    debug_context->last_file = NULL;
-    debug_context->last_line = 0;
     debug_context->flags = 0;
 
     debug_context->stop_next = -1;
@@ -1184,16 +1180,9 @@ debug_event_hook(rb_event_flag_t event, VALUE data, VALUE self, ID mid, VALUE kl
     if (iseq->type != ISEQ_TYPE_RESCUE && iseq->type != ISEQ_TYPE_ENSURE)
         set_cfp(debug_context);
 
-    /* There can be many event calls per line, but we only want
-     *one* breakpoint per line. */
-    line = rb_sourceline();
-    file = RSTRING_PTR(iseq->filename);
-    if(debug_context->last_line != line || debug_context->last_file == NULL ||
-       strcmp(debug_context->last_file, file) != 0)
-    {
-        CTX_FL_SET(debug_context, CTX_FL_ENABLE_BKPT);
-        moved = 1;
-    } 
+
+    CTX_FL_SET(debug_context, CTX_FL_ENABLE_BKPT);
+    moved = 1;
 
     if(event != RUBY_EVENT_LINE)
         CTX_FL_SET(debug_context, CTX_FL_STEPPED);

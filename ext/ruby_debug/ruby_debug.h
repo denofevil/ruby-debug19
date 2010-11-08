@@ -45,8 +45,6 @@ typedef struct {
     int stop_line;
     int stop_frame;
     int stack_len;
-    const char * last_file;
-    int last_line;
     VALUE breakpoint;
     debug_catch_t catch_table;
     VALUE saved_jump_ins[2];
